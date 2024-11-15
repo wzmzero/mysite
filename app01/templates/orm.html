@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <link rel="stylesheet" href="../static/plugins/bootstrap-3.3.7/css/bootstrap.css">
+    <script src="../static/plugins/jquery.js"></script>
+</head>
+<body>
+<div class="message" id="message"></div>
+<span style="color: red;border-bottom: 1px">数据：</span>
+<span id="ws" style="color: blue;">数据为空</span>
+<div>
+    <input type="text" placeholder="input" id="txt">
+    <input type="button" value="fasong" onclick="senMessage()">
+</div>
+<script type="text/javascript">
+    socket =new WebSocket("ws://122.51.127.33:8003/room/123/");
+
+    //刚创建好链接
+    socket.onopen = function (event){
+        let tag = document.createElement("div")
+        tag.innerText = "[连接成功]"
+        socket.send(event.data)
+        document.getElementById("message").appendChild(tag)
+    }
+    //接收服务端数据后
+    socket.onmessage = function (event){
+        socket.send(event.data)
+        $('#ws').text(event.data)
+        console.log(event.data)
+    }
+    function senMessage(){
+        let tag = document.getElementById("txt")
+        console.log("send")
+        socket.send(tag.value)
+    }
+</script>
+</body>
+</html>

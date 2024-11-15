@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="../static/plugins/echarts/dist/echarts.js"></script>
+    <link rel="stylesheet" href="../static/plugins/bootstrap-3.3.7/css/bootstrap.css">
+    <script src="../static/plugins/jquery.js"></script>
+</head>
+<body>
+{#<div>温湿度数据图表</div>#}
+<div id="main" style="width: 1000px;height:500px;" >数据</div>
+<div class="message" id="message"></div>
+<span style="color: red;border-bottom: 1px">数据：</span>
+<span id="ws" style="color: blue;">数据为空</span>
+<div>
+    <input type="text" placeholder="input" id="txt">
+    <input type="button" value="fasong" onclick="senMessage()">
+</div>
+</body>
+<script type="text/javascript">
+    socket =new WebSocket("ws://122.51.127.33:80/room/123/");
+    //刚创建好链接
+    socket.onopen = function (event){
+        let tag = document.createElement("div")
+        tag.innerText = "[Websocket连接成功]"
+        socket.send(event.data)
+        document.getElementById("message").appendChild(tag)
+    }
+    //接收服务端数据后
+    socket.onmessage = function (event){
+        socket.send(event.data)
+        $('#ws').text(event.data)
+
+    }
+    function senMessage(){
+        let tag = document.getElementById("txt")
+        {#console.log("send")#}
+        socket.send(tag.value)
+    }
+
+    let  myChart = echarts.init(document.getElementById("main"));
+let x_data = [];
+let y_data = [];
+let y2_data = [];
+option = {
+  title: {
+    text: '电缆井监测'
+  },
+    tooltip: {
+    trigger: 'axis',
+
+    axisPointer: {
+      type: 'cross',
+      label: {
+        backgroundColor: '#283b56'
+      }
+    }
+  },
+  legend: {},
+  toolbox: {
+    show: true,
+    feature: {
+      dataView: { readOnly: false },
+      restore: {},
+      saveAsImage: {}
+    }
+  },
+  dataZoom: {
+    show: false,
+    start: 0,
+    end: 100
+  },
+  xAxis: {
+    type: 'category',
+    data : x_data,
+
+  },
+  yAxis:
+    [{
+    type: 'value',
+    name : 'temper',
+        scale: true,
+    boundaryGap: [0, 0],
+      max: 100,
+      min: 0,
+     },    {
+    type: 'value',
+    name : 'humidity',
+        scale: true,
+    boundaryGap: [0, 0],
+      max: 100,
+      min: 0,
+      axisLabel : {
+	show: true,
+	interval: 'auto',
+	formatter:'{value}%',
+}
+     }],
+  series: [
+    {
+      name: '温度',
+      type: 'line',
+      showSymbol: true,
+      data: y_data,
+    },
+        {
+      name: '湿度',
+      type: 'line',
+      showSymbol: true,
+      data: y2_data,
+    }
+  ]
+};
+function getTime(){
+                let time = new Date();
+                return time.toLocaleTimeString().replace(/^\D*/, '');
+            }
+setInterval(function () {
+    if(x_data.length > 20){x_data.shift();y_data.shift(),y2_data.shift()}
+    x_data.push(getTime());
+    {#y_data.push(Math.random() * 2+20);#}
+    y_data.push($('#ws').text().split(",")[2]);
+    y2_data.push($('#ws').text().split(",")[1]);
+    myChart.setOption({
+           title: {
+    text: '电缆井'+new Date().toLocaleString()
+  },
+
+    xAxis: {
+    type: 'category',
+    data : x_data,
+  },
+
+  series: [
+    {
+      name: '温度',
+      type: 'line',
+      showSymbol: false,
+      data: y_data
+    },
+    {
+      name: '湿度',
+      type: 'line',
+      showSymbol: false,
+      data: y2_data
+    }
+  ]
+  });
+}, 1000);
+myChart.setOption(option)
+</script>
+</html>
